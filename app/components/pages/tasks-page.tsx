@@ -96,7 +96,16 @@ export function TasksPage() {
 
   // Load tasks
   const loadTasks = async () => {
-    if (!activeProject?.id) return;
+    if (!activeProject?.id) {
+      // Clear data and stop loading when no project is selected
+      setTasks([]);
+      setTotalPages(1);
+      setTotalTasks(0);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const params = new URLSearchParams({
@@ -112,9 +121,19 @@ export function TasksPage() {
         setTasks(data.tasks || []);
         setTotalPages(data.pagination?.totalPages || 1);
         setTotalTasks(data.pagination?.total || 0);
+      } else {
+        // Handle API errors gracefully
+        console.error('API Error:', response.status, response.statusText);
+        setTasks([]);
+        setTotalPages(1);
+        setTotalTasks(0);
       }
     } catch (error) {
       console.error('Error loading tasks:', error);
+      // Ensure we have clean state on error
+      setTasks([]);
+      setTotalPages(1);
+      setTotalTasks(0);
     } finally {
       setIsLoading(false);
     }
@@ -122,24 +141,30 @@ export function TasksPage() {
 
   // Load worklines
   const loadWorklines = async () => {
-    if (!activeProject?.id) return;
+    if (!activeProject?.id) {
+      setWorklines([]);
+      return;
+    }
 
     try {
       const response = await fetch(`/api/worklines?projectId=${activeProject.id}`);
       if (response.ok) {
         const data = await response.json();
         setWorklines(data || []);
+      } else {
+        console.error('Worklines API Error:', response.status, response.statusText);
+        setWorklines([]);
       }
     } catch (error) {
       console.error('Error loading worklines:', error);
+      setWorklines([]);
     }
   };
 
   useEffect(() => {
-    if (activeProject?.id) {
-      loadTasks();
-      loadWorklines();
-    }
+    // Always call load functions to handle both cases: with and without project
+    loadTasks();
+    loadWorklines();
   }, [activeProject?.id, currentPage, filters]);
 
   // Handle create task
@@ -505,9 +530,40 @@ export function TasksPage() {
               )}
             </>
           ) : (
-            <div className="text-center py-8">
-              <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">{t('common.noData')}</p>
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto">
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-amber-500/10 flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 text-amber-500" />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-3">
+                  {t('tasks.noTasksTitle')}
+                </h3>
+                <p className="text-muted-foreground mb-6 leading-relaxed">
+                  {t('tasks.noTasksDescription')}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button 
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="neo-button-primary"
+                    size="lg"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    {t('tasks.createFirstTask')}
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsCsvModalOpen(true)}
+                    className="neo-button-secondary"
+                    size="lg"
+                  >
+                    <Upload className="w-5 h-5 mr-2" />
+                    {t('tasks.importTasks')}
+                  </Button>
+                </div>
+                <div className="mt-6 text-sm text-muted-foreground">
+                  <p>{t('tasks.helpText')}</p>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>

@@ -102,7 +102,12 @@ export const translations = {
       addToRepository: 'Añadir al Repositorio',
       editTask: 'Editar Tarea',
       saveTask: 'Guardar Tarea',
-      deleteTask: 'Eliminar Tarea'
+      deleteTask: 'Eliminar Tarea',
+      noTasksTitle: 'No hay tareas en este proyecto',
+      noTasksDescription: 'Comienza creando tu primera tarea o importa tareas desde un archivo CSV para organizar tu trabajo.',
+      createFirstTask: 'Crear Primera Tarea',
+      importTasks: 'Importar Tareas',
+      helpText: 'Las tareas te ayudan a organizar y planificar el trabajo del proyecto de manera eficiente.'
     },
     // Meetings
     meetings: {
@@ -313,7 +318,12 @@ export const translations = {
       addToRepository: 'Add to Repository',
       editTask: 'Edit Task',
       saveTask: 'Save Task',
-      deleteTask: 'Delete Task'
+      deleteTask: 'Delete Task',
+      noTasksTitle: 'No tasks in this project',
+      noTasksDescription: 'Get started by creating your first task or import tasks from a CSV file to organize your work.',
+      createFirstTask: 'Create First Task',
+      importTasks: 'Import Tasks',
+      helpText: 'Tasks help you organize and plan project work efficiently.'
     },
     // Meetings
     meetings: {
