@@ -37,6 +37,7 @@ export function CalendarPage() {
   const { activeProject } = useProject();
   const { t } = useLanguage();
   const [actions, setActions] = useState<ActionWithWorkline[]>([]);
+  const [tasks, setTasks] = useState<ActionWithWorkline[]>([]);
   const [worklines, setWorklines] = useState<Workline[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'week' | 'month' | 'day'>('week');
@@ -57,34 +58,47 @@ export function CalendarPage() {
       }
       
       try {
-        const [actionsRes, worklinesRes] = await Promise.all([
+        const [actionsRes, tasksRes, worklinesRes] = await Promise.all([
           fetch(`/api/actions?projectId=${activeProject.id}`),
+          fetch(`/api/tasks?projectId=${activeProject.id}&limit=1000`),
           fetch(`/api/worklines?projectId=${activeProject.id}`)
         ]);
         
+        let actionsData: ActionWithWorkline[] = [];
+        let tasksData: ActionWithWorkline[] = [];
+
         if (actionsRes.ok) {
-          const actionsData = await actionsRes.json();
+          actionsData = await actionsRes.json();
           setActions(actionsData);
-          
-          // Initialize scheduled actions
-          const scheduled: { [key: string]: ActionWithWorkline[] } = {};
-          const hours: { [key: string]: number } = {};
-          
-          actionsData.forEach((action: ActionWithWorkline) => {
-            if (action.startDate) {
-              const dateKey = new Date(action.startDate).toDateString();
-              if (!scheduled[dateKey]) {
-                scheduled[dateKey] = [];
-                hours[dateKey] = 0;
-              }
-              scheduled[dateKey].push(action);
-              hours[dateKey] += action.estimatedHours;
-            }
-          });
-          
-          setScheduledActions(scheduled);
-          setDailyHours(hours);
         }
+
+        if (tasksRes.ok) {
+          const tasksResponse = await tasksRes.json();
+          tasksData = tasksResponse.tasks || [];
+          setTasks(tasksData);
+        }
+        
+        // Combine actions and tasks for scheduled items
+        const allItems = [...actionsData, ...tasksData];
+        
+        // Initialize scheduled actions
+        const scheduled: { [key: string]: ActionWithWorkline[] } = {};
+        const hours: { [key: string]: number } = {};
+        
+        allItems.forEach((item: ActionWithWorkline) => {
+          if (item.startDate) {
+            const dateKey = new Date(item.startDate).toDateString();
+            if (!scheduled[dateKey]) {
+              scheduled[dateKey] = [];
+              hours[dateKey] = 0;
+            }
+            scheduled[dateKey].push(item);
+            hours[dateKey] += item.estimatedHours;
+          }
+        });
+        
+        setScheduledActions(scheduled);
+        setDailyHours(hours);
         
         if (worklinesRes.ok) {
           const worklinesData = await worklinesRes.json();
@@ -255,11 +269,14 @@ export function CalendarPage() {
     }
   };
 
-  const unscheduledActions = actions.filter(action => !action.startDate && action.status === 'pending');
-  const criticalActions = actions.filter(action => action.status === 'critical');
-  const upcomingDeadlines = actions.filter(action => {
-    if (!action.endDate) return false;
-    const deadline = new Date(action.endDate);
+  // Combine actions and tasks for all calculations
+  const allItems = [...actions, ...tasks];
+  
+  const unscheduledActions = allItems.filter(item => !item.startDate && item.status === 'pending');
+  const criticalActions = allItems.filter(item => item.status === 'critical');
+  const upcomingDeadlines = allItems.filter(item => {
+    if (!item.endDate) return false;
+    const deadline = new Date(item.endDate);
     const today = new Date();
     const daysUntil = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     return daysUntil <= 7 && daysUntil >= 0;
@@ -297,6 +314,7 @@ export function CalendarPage() {
             unscheduledActions={unscheduledActions}
             criticalActions={criticalActions}
             upcomingDeadlines={upcomingDeadlines}
+            tasks={tasks.filter(task => !task.startDate)}
           />
         </div>
 

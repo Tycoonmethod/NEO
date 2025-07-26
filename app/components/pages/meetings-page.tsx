@@ -199,28 +199,33 @@ export function MeetingsPage() {
     if (!activeProject || !selectedMeeting) return;
 
     try {
-      const response = await fetch('/api/actions', {
+      // Add to tasks repository (new tasks API)
+      const response = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: action.title,
           description: action.description,
+          owner: action.owner || null,
           startDate: action.startDate ? new Date(action.startDate) : null,
           endDate: action.endDate ? new Date(action.endDate) : null,
           estimatedHours: action.estimatedHours || 1,
           priority: action.priority || 1,
+          status: action.status || 'pending',
           projectId: activeProject.id,
           worklineId: worklineId,
-          meetingId: selectedMeeting.id,
         }),
       });
 
       if (response.ok) {
         // Remove action from extracted list
         setExtractedActions(prev => prev.filter(a => a !== action));
+        
+        // Show success message
+        console.log('Task added to repository successfully');
       }
     } catch (error) {
-      console.error('Error adding action to repository:', error);
+      console.error('Error adding task to repository:', error);
     }
   };
 

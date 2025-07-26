@@ -40,21 +40,29 @@ export function Header() {
         switch(e.key) {
           case '1':
             e.preventDefault();
-            window.location.href = '/dashboard';
+            window.location.href = '/';
             break;
           case '2':
             e.preventDefault();
-            window.location.href = '/calendar';
+            window.location.href = '/tasks';
             break;
           case '3':
             e.preventDefault();
-            window.location.href = '/gantt';
+            window.location.href = '/meetings';
             break;
           case '4':
             e.preventDefault();
-            window.location.href = '/meetings';
+            window.location.href = '/calendar';
             break;
           case '5':
+            e.preventDefault();
+            window.location.href = '/dashboard';
+            break;
+          case '6':
+            e.preventDefault();
+            window.location.href = '/gantt';
+            break;
+          case '7':
             e.preventDefault();
             window.location.href = '/files';
             break;
@@ -242,24 +250,32 @@ export function Header() {
               <h4 className="font-semibold text-sm">Navigation</h4>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Dashboard</span>
+                  <span className="text-sm">Home</span>
                   <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+1</kbd>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Calendar</span>
+                  <span className="text-sm">Tasks</span>
                   <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+2</kbd>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Gantt</span>
+                  <span className="text-sm">Meetings</span>
                   <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+3</kbd>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Meetings</span>
+                  <span className="text-sm">Calendar</span>
                   <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+4</kbd>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Files</span>
+                  <span className="text-sm">Dashboard</span>
                   <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+5</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Gantt</span>
+                  <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+6</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Files</span>
+                  <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+7</kbd>
                 </div>
               </div>
             </div>

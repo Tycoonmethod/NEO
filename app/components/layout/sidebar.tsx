@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { 
   Home, 
+  CheckSquare,
   MessageSquare, 
   Calendar, 
   BarChart3, 
@@ -23,6 +24,12 @@ const navigationItems = [
     href: '/', 
     icon: Home,
     translationKey: 'nav.home'
+  },
+  { 
+    key: 'tasks', 
+    href: '/tasks', 
+    icon: CheckSquare,
+    translationKey: 'nav.tasks'
   },
   { 
     key: 'meetings', 

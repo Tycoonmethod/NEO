@@ -98,6 +98,7 @@ model Action {
     id             String    @id @default(cuid())
     title          String
     description    String?
+    owner          String?   // Owner/assignee of the task
     startDate      DateTime?
     endDate        DateTime?
     estimatedHours Int       @default(1) // 1, 2, or 3 people worth of hours

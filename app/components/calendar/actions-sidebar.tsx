@@ -12,7 +12,8 @@ import {
   AlertTriangle, 
   Target, 
   GripVertical,
-  Calendar
+  Calendar,
+  CheckSquare
 } from 'lucide-react';
 import { Action, Workline } from '@prisma/client';
 
@@ -25,6 +26,7 @@ interface ActionsSidebarProps {
   unscheduledActions: ActionWithWorkline[];
   criticalActions: ActionWithWorkline[];
   upcomingDeadlines: ActionWithWorkline[];
+  tasks: ActionWithWorkline[];
 }
 
 function DraggableAction({ action }: { action: ActionWithWorkline }) {
@@ -92,6 +94,7 @@ export function ActionsSidebar({
   unscheduledActions,
   criticalActions,
   upcomingDeadlines,
+  tasks,
 }: ActionsSidebarProps) {
   const { t } = useLanguage();
 
@@ -218,8 +221,30 @@ export function ActionsSidebar({
                 </>
               )}
 
+              {/* Tasks Repository */}
+              {tasks.length > 0 && (
+                <>
+                  {(worklines.length > 0 || actionsWithoutWorkline.length > 0) && <Separator />}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <CheckSquare className="w-4 h-4 neo-text-gold" />
+                      <h4 className="font-medium text-sm">{t('nav.tasks')} Repository</h4>
+                      <Badge variant="secondary" className="text-xs">
+                        {tasks.length}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {tasks.map((task) => (
+                        <DraggableAction key={task.id} action={task} />
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
               {/* Empty State */}
-              {unscheduledActions.length === 0 && (
+              {unscheduledActions.length === 0 && tasks.length === 0 && (
                 <div className="text-center py-8">
                   <Clock className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
                   <p className="text-sm text-muted-foreground">

@@ -110,12 +110,58 @@ export function GanttChart({
         
         while (current.getTime() <= latestDate.getTime()) {
           dates.push(new Date(current));
-          current.setMonth(current.getMonth() + 1);
+          
+          if (timeRange === 'full') {
+            // For full view, show weeks instead of months for better granularity
+            current.setDate(current.getDate() + 7);
+          } else {
+            current.setMonth(current.getMonth() + 1);
+          }
         }
       }
     }
     
     return dates;
+  };
+
+  const getMonthHeaders = () => {
+    const timelineDates = getTimelineDates();
+    if (timelineDates.length === 0) return [];
+    
+    const monthHeaders: { month: string; width: number; startIndex: number }[] = [];
+    let currentMonth = '';
+    let currentMonthStart = 0;
+    let currentMonthDays = 0;
+    
+    timelineDates.forEach((date, index) => {
+      const monthYear = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      
+      if (monthYear !== currentMonth) {
+        if (currentMonth && currentMonthDays > 0) {
+          monthHeaders.push({
+            month: currentMonth,
+            width: currentMonthDays,
+            startIndex: currentMonthStart
+          });
+        }
+        currentMonth = monthYear;
+        currentMonthStart = index;
+        currentMonthDays = 1;
+      } else {
+        currentMonthDays++;
+      }
+    });
+    
+    // Add the last month
+    if (currentMonth && currentMonthDays > 0) {
+      monthHeaders.push({
+        month: currentMonth,
+        width: currentMonthDays,
+        startIndex: currentMonthStart
+      });
+    }
+    
+    return monthHeaders;
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -198,10 +244,43 @@ export function GanttChart({
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Timeline View</h3>
         
-        {/* Time Header */}
+        {/* Month Headers - Superior bar showing months */}
+        {timeRange !== 'week' && (
+          <div className="flex text-sm font-medium text-foreground border-b border-border pb-2 mb-2">
+            <div className="w-48"></div>
+            <div className="flex-1 overflow-x-auto">
+              <div className="flex min-w-full">
+                {getMonthHeaders().map((monthHeader, i) => (
+                  <div 
+                    key={i} 
+                    className="text-center px-2 py-1 bg-muted/30 border-r border-border/30 last:border-r-0 flex-shrink-0 neo-text-gold font-semibold"
+                    style={{ 
+                      minWidth: `${monthHeader.width * (
+                        timeRange === 'month' ? 40 : 
+                        timeRange === 'quarter' ? 30 : 
+                        timeRange === 'year' ? 80 : 60
+                      )}px`
+                    }}
+                  >
+                    {monthHeader.month}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Time Header - Days/Weeks */}
         <div className="flex text-xs text-muted-foreground border-b border-border pb-2">
-          <div className="w-48">Workline</div>
-          <div className="flex-1 overflow-x-auto">
+          <div className="w-48">
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Worklines</span>
+              <div className="text-xs text-muted-foreground">
+                ({chartData.length} lines)
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 overflow-x-auto scrollbar-hide">
             <div className="flex min-w-full">
               {getTimelineDates().map((date, i) => {
                 let displayText = '';
@@ -214,13 +293,17 @@ export function GanttChart({
                 } else if (timeRange === 'year') {
                   displayText = date.toLocaleDateString('en-US', { month: 'short' });
                 } else if (timeRange === 'full') {
-                  displayText = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                  displayText = date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
                 }
+                
+                const isToday = date.toDateString() === new Date().toDateString();
                 
                 return (
                   <div 
                     key={i} 
-                    className="text-center px-2 border-r border-border/30 last:border-r-0 flex-shrink-0"
+                    className={`text-center px-2 border-r border-border/30 last:border-r-0 flex-shrink-0 ${
+                      isToday ? 'bg-primary/10 font-semibold neo-text-gold' : ''
+                    }`}
                     style={{ 
                       minWidth: timeRange === 'week' ? '100px' : 
                                timeRange === 'month' ? '40px' : 
@@ -264,8 +347,18 @@ export function GanttChart({
               </div>
 
               {/* Timeline */}
-              <div className="flex-1 overflow-x-auto">
-                <div className="relative h-16 bg-muted/10 rounded min-w-full">
+              <div className="flex-1 overflow-x-auto scrollbar-hide">
+                <div 
+                  className="relative h-16 bg-muted/10 rounded"
+                  style={{ 
+                    minWidth: `${getTimelineDates().length * (
+                      timeRange === 'week' ? 100 : 
+                      timeRange === 'month' ? 40 : 
+                      timeRange === 'quarter' ? 30 : 
+                      timeRange === 'year' ? 80 : 60
+                    )}px`
+                  }}
+                >
                   {worklineData.actions
                     .filter(action => action.startDate && action.endDate)
                     .map((action, actionIndex) => {

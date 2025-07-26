@@ -4,6 +4,7 @@ export const translations = {
     // Navigation
     nav: {
       home: 'Inicio',
+      tasks: 'Tareas',
       meetings: 'Reuniones',
       calendar: 'Calendario',
       gantt: 'Gantt',
@@ -72,6 +73,36 @@ export const translations = {
       active: 'Activo',
       completed: 'Completado',
       paused: 'Pausado'
+    },
+    // Tasks
+    tasks: {
+      title: 'Gestión de Tareas',
+      subtitle: 'Administra todas las tareas del proyecto',
+      newTask: 'Nueva Tarea',
+      bulkUpload: 'Carga Masiva CSV',
+      filters: 'Filtros',
+      alphabetical: 'Alfabético',
+      byOwner: 'Por Responsable',
+      byEstimatedHours: 'Por Horas Estimadas',
+      byPriority: 'Por Prioridad',
+      byDates: 'Por Fechas',
+      taskName: 'Nombre de la Tarea',
+      taskDescription: 'Descripción de la Tarea',
+      owner: 'Responsable',
+      estimatedHours: 'Horas Estimadas',
+      startDate: 'Fecha de Inicio',
+      deadline: 'Fecha Límite',
+      csvUpload: 'Cargar CSV',
+      validateCsv: 'Validar CSV',
+      previewTasks: 'Vista previa de tareas',
+      confirmUpload: 'Confirmar carga',
+      tasksPerPage: 'tareas por página',
+      csvHeaders: 'Columnas requeridas: nombre, descripción, responsable, estado, fechaInicio, fechaLimite, horasEstimadas, prioridad',
+      csvPreview: 'Vista previa (máximo 40 tareas)',
+      addToRepository: 'Añadir al Repositorio',
+      editTask: 'Editar Tarea',
+      saveTask: 'Guardar Tarea',
+      deleteTask: 'Eliminar Tarea'
     },
     // Meetings
     meetings: {
@@ -184,6 +215,7 @@ export const translations = {
     // Navigation
     nav: {
       home: 'Home',
+      tasks: 'Tasks',
       meetings: 'Meetings',
       calendar: 'Calendar',
       gantt: 'Gantt',
@@ -252,6 +284,36 @@ export const translations = {
       active: 'Active',
       completed: 'Completed',
       paused: 'Paused'
+    },
+    // Tasks
+    tasks: {
+      title: 'Task Management',
+      subtitle: 'Manage all project tasks',
+      newTask: 'New Task',
+      bulkUpload: 'CSV Bulk Upload',
+      filters: 'Filters',
+      alphabetical: 'Alphabetical',
+      byOwner: 'By Owner',
+      byEstimatedHours: 'By Estimated Hours',
+      byPriority: 'By Priority',
+      byDates: 'By Dates',
+      taskName: 'Task Name',
+      taskDescription: 'Task Description',
+      owner: 'Owner',
+      estimatedHours: 'Estimated Hours',
+      startDate: 'Start Date',
+      deadline: 'Deadline',
+      csvUpload: 'Upload CSV',
+      validateCsv: 'Validate CSV',
+      previewTasks: 'Preview tasks',
+      confirmUpload: 'Confirm upload',
+      tasksPerPage: 'tasks per page',
+      csvHeaders: 'Required columns: name, description, owner, status, startDate, deadline, estimatedHours, priority',
+      csvPreview: 'Preview (maximum 40 tasks)',
+      addToRepository: 'Add to Repository',
+      editTask: 'Edit Task',
+      saveTask: 'Save Task',
+      deleteTask: 'Delete Task'
     },
     // Meetings
     meetings: {

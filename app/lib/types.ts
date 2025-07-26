@@ -47,6 +47,7 @@ export interface Action {
   id: string;
   title: string;
   description?: string;
+  owner?: string;
   startDate?: Date;
   endDate?: Date;
   estimatedHours: number;
