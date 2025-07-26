@@ -15,7 +15,7 @@ interface GanttChartProps {
   worklines: Workline[];
   actionsByWorkline: { [key: string]: ActionWithWorkline[] };
   currentDate: Date;
-  timeRange: 'week' | 'month' | 'quarter';
+  timeRange: 'week' | 'month' | 'quarter' | 'year' | 'full';
 }
 
 interface ChartDataItem {
@@ -67,7 +67,8 @@ export function GanttChart({
       }
     } else if (timeRange === 'month') {
       start.setDate(1);
-      for (let i = 0; i < 30; i++) {
+      const daysInMonth = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
+      for (let i = 0; i < daysInMonth; i++) {
         const date = new Date(start);
         date.setDate(start.getDate() + i);
         dates.push(date);
@@ -78,6 +79,39 @@ export function GanttChart({
         const date = new Date(start);
         date.setDate(start.getDate() + i);
         dates.push(date);
+      }
+    } else if (timeRange === 'year') {
+      start.setMonth(0, 1);
+      for (let month = 0; month < 12; month++) {
+        const date = new Date(start.getFullYear(), month, 1);
+        dates.push(date);
+      }
+    } else if (timeRange === 'full') {
+      // Get the full project range from all actions
+      const allActions = Object.values(actionsByWorkline).flat();
+      const actionDates: Date[] = [];
+      
+      allActions.forEach(action => {
+        if (action.startDate) {
+          actionDates.push(new Date(action.startDate));
+        }
+        if (action.endDate) {
+          actionDates.push(new Date(action.endDate));
+        }
+      });
+      
+      if (actionDates.length > 0) {
+        actionDates.sort((a, b) => a.getTime() - b.getTime());
+        const earliestDate = actionDates[0];
+        const latestDate = actionDates[actionDates.length - 1];
+        
+        const current = new Date(earliestDate);
+        current.setDate(1); // Start from first day of month
+        
+        while (current.getTime() <= latestDate.getTime()) {
+          dates.push(new Date(current));
+          current.setMonth(current.getMonth() + 1);
+        }
       }
     }
     
@@ -167,15 +201,38 @@ export function GanttChart({
         {/* Time Header */}
         <div className="flex text-xs text-muted-foreground border-b border-border pb-2">
           <div className="w-48">Workline</div>
-          <div className="flex-1 grid grid-cols-7 gap-1">
-            {getTimelineDates().slice(0, 7).map((date, i) => (
-              <div key={i} className="text-center">
-                {timeRange === 'week' 
-                  ? date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
-                  : date.getDate()
+          <div className="flex-1 overflow-x-auto">
+            <div className="flex min-w-full">
+              {getTimelineDates().map((date, i) => {
+                let displayText = '';
+                if (timeRange === 'week') {
+                  displayText = date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+                } else if (timeRange === 'month') {
+                  displayText = date.getDate().toString();
+                } else if (timeRange === 'quarter') {
+                  displayText = `${date.getMonth() + 1}/${date.getDate()}`;
+                } else if (timeRange === 'year') {
+                  displayText = date.toLocaleDateString('en-US', { month: 'short' });
+                } else if (timeRange === 'full') {
+                  displayText = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
                 }
-              </div>
-            ))}
+                
+                return (
+                  <div 
+                    key={i} 
+                    className="text-center px-2 border-r border-border/30 last:border-r-0 flex-shrink-0"
+                    style={{ 
+                      minWidth: timeRange === 'week' ? '100px' : 
+                               timeRange === 'month' ? '40px' : 
+                               timeRange === 'quarter' ? '30px' : 
+                               timeRange === 'year' ? '80px' : '60px'
+                    }}
+                  >
+                    {displayText}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -207,48 +264,85 @@ export function GanttChart({
               </div>
 
               {/* Timeline */}
-              <div className="flex-1 relative h-12 bg-muted/20 rounded">
-                {worklineData.actions
-                  .filter(action => action.startDate && action.endDate)
-                  .map((action) => {
-                    const startDate = new Date(action.startDate!);
-                    const endDate = new Date(action.endDate!);
-                    const timelineDates = getTimelineDates();
-                    
-                    // Calculate position and width
-                    const timelineStart = timelineDates[0];
-                    const timelineEnd = timelineDates[timelineDates.length - 1];
-                    const totalDays = Math.ceil((timelineEnd.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24));
-                    
-                    const startOffset = Math.max(0, Math.ceil((startDate.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24)));
-                    const duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-                    
-                    const leftPercent = (startOffset / totalDays) * 100;
-                    const widthPercent = Math.min((duration / totalDays) * 100, 100 - leftPercent);
-                    
-                    if (widthPercent <= 0) return null;
-                    
-                    return (
-                      <div
-                        key={action.id}
-                        className="absolute top-1 h-10 rounded flex items-center px-2 text-xs font-medium cursor-pointer group"
-                        style={{
-                          left: `${leftPercent}%`,
-                          width: `${widthPercent}%`,
-                          backgroundColor: worklineData.color,
-                          color: 'white',
-                        }}
-                        title={`${action.title} (${action.estimatedHours}h)`}
-                      >
-                        <span className="truncate">{action.title}</span>
-                        <Badge 
-                          className={`ml-2 opacity-75 neo-status-${action.status} scale-75`}
+              <div className="flex-1 overflow-x-auto">
+                <div className="relative h-16 bg-muted/10 rounded min-w-full">
+                  {worklineData.actions
+                    .filter(action => action.startDate && action.endDate)
+                    .map((action, actionIndex) => {
+                      const startDate = new Date(action.startDate!);
+                      const endDate = new Date(action.endDate!);
+                      const timelineDates = getTimelineDates();
+                      
+                      if (timelineDates.length === 0) return null;
+                      
+                      // Calculate position and width based on time range
+                      let leftPercent = 0;
+                      let widthPercent = 0;
+                      
+                      if (timeRange === 'week' || timeRange === 'month' || timeRange === 'quarter') {
+                        const timelineStart = timelineDates[0];
+                        const timelineEnd = timelineDates[timelineDates.length - 1];
+                        const totalMs = timelineEnd.getTime() - timelineStart.getTime();
+                        
+                        const startOffset = Math.max(0, startDate.getTime() - timelineStart.getTime());
+                        const duration = endDate.getTime() - startDate.getTime();
+                        
+                        leftPercent = (startOffset / totalMs) * 100;
+                        widthPercent = Math.min((duration / totalMs) * 100, 100 - leftPercent);
+                      } else if (timeRange === 'year' || timeRange === 'full') {
+                        // For year/full view, calculate based on months
+                        const timelineStart = timelineDates[0];
+                        const timelineEnd = new Date(timelineDates[timelineDates.length - 1]);
+                        timelineEnd.setMonth(timelineEnd.getMonth() + 1, 0); // End of last month
+                        
+                        const totalMs = timelineEnd.getTime() - timelineStart.getTime();
+                        const startOffset = Math.max(0, startDate.getTime() - timelineStart.getTime());
+                        const duration = endDate.getTime() - startDate.getTime();
+                        
+                        leftPercent = (startOffset / totalMs) * 100;
+                        widthPercent = Math.min((duration / totalMs) * 100, 100 - leftPercent);
+                      }
+                      
+                      if (widthPercent <= 0) return null;
+                      
+                      const statusColors = {
+                        pending: '#6B7280',
+                        in_progress: '#3B82F6',
+                        completed: '#10B981',
+                        critical: '#EF4444',
+                      };
+                      
+                      return (
+                        <div
+                          key={action.id}
+                          className="absolute rounded-md flex items-center px-2 text-xs font-medium cursor-pointer group shadow-sm hover:shadow-md transition-all"
+                          style={{
+                            left: `${leftPercent}%`,
+                            width: `${Math.max(widthPercent, 5)}%`, // Minimum width for visibility
+                            top: `${4 + actionIndex * 20}px`,
+                            height: '16px',
+                            backgroundColor: statusColors[action.status as keyof typeof statusColors] || worklineData.color,
+                            opacity: action.status === 'completed' ? 0.7 : 0.9,
+                          }}
+                          title={`${action.title} (${action.estimatedHours}h) - ${action.status}`}
                         >
-                          {action.status}
-                        </Badge>
-                      </div>
-                    );
-                  })}
+                          <span className="truncate text-white text-xs">
+                            {widthPercent > 15 ? action.title : action.title.substring(0, 10) + '...'}
+                          </span>
+                          {widthPercent > 25 && (
+                            <div className="ml-auto flex items-center gap-1 text-white/80">
+                              <span className="text-xs">{action.estimatedHours}h</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  
+                  {/* Show consecutive actions indicator */}
+                  <div className="absolute top-0 right-2 text-xs text-muted-foreground">
+                    {worklineData.actions.filter(a => a.startDate && a.endDate).length} tasks
+                  </div>
+                </div>
               </div>
             </div>
           ))}

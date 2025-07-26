@@ -33,7 +33,7 @@ export function GanttPage() {
   const [actions, setActions] = useState<ActionWithWorkline[]>([]);
   const [worklines, setWorklines] = useState<Workline[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter'>('month');
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter' | 'year' | 'full'>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedWorklines, setSelectedWorklines] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -82,9 +82,14 @@ export function GanttPage() {
       newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
     } else if (timeRange === 'quarter') {
       newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 3 : -3));
+    } else if (timeRange === 'year') {
+      newDate.setFullYear(newDate.getFullYear() + (direction === 'next' ? 1 : -1));
     }
+    // For 'full' view, navigation doesn't make sense as it shows the entire project
     
-    setCurrentDate(newDate);
+    if (timeRange !== 'full') {
+      setCurrentDate(newDate);
+    }
   };
 
   const toggleWorkline = (worklineId: string) => {
@@ -168,13 +173,40 @@ export function GanttPage() {
         
         <div className="flex items-center gap-2">
           <Select value={timeRange} onValueChange={(value: any) => setTimeRange(value)}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="week">Week</SelectItem>
-              <SelectItem value="month">Month</SelectItem>
-              <SelectItem value="quarter">Quarter</SelectItem>
+              <SelectItem value="week">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Weekly
+                </div>
+              </SelectItem>
+              <SelectItem value="month">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Monthly
+                </div>
+              </SelectItem>
+              <SelectItem value="quarter">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Quarterly
+                </div>
+              </SelectItem>
+              <SelectItem value="year">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Yearly
+                </div>
+              </SelectItem>
+              <SelectItem value="full">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  Full Project
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
           
@@ -191,29 +223,33 @@ export function GanttPage() {
             </SelectContent>
           </Select>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigateTime('prev')}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentDate(new Date())}
-          >
-            Today
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigateTime('next')}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+          {timeRange !== 'full' && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateTime('prev')}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentDate(new Date())}
+              >
+                Today
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateTime('next')}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
 

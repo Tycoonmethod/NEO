@@ -533,49 +533,60 @@ export function MeetingsPage() {
         </div>
       )}
 
-      {/* Extracted Actions Modal */}
-      <Dialog 
-        open={extractedActions.length > 0} 
-        onOpenChange={() => setExtractedActions([])}
-      >
-        <DialogContent className="neo-modal max-w-4xl">
-          <DialogHeader>
-            <DialogTitle className="neo-text-gold">
-              {t('meetings.extractActions')}
-            </DialogTitle>
-            <DialogDescription>
-              {t('meetings.addToRepository')}
-            </DialogDescription>
-          </DialogHeader>
+      {/* Extracted Actions Section - Now shown inline below meeting */}
+      {extractedActions.length > 0 && selectedMeeting && (
+        <Card className="neo-card mt-6">
+          <CardHeader>
+            <CardTitle className="neo-text-gold flex items-center gap-2">
+              <Zap className="w-5 h-5" />
+              {t('meetings.extractActions')} - {selectedMeeting.title}
+            </CardTitle>
+            <CardDescription>
+              {t('meetings.addToRepository')} ({extractedActions.length} actions found)
+            </CardDescription>
+          </CardHeader>
           
-          <div className="space-y-4 max-h-96 overflow-y-auto neo-scrollbar">
-            {extractedActions.map((action, index) => (
-              <Card key={index} className="neo-card">
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="font-medium">{action.title}</h4>
-                      {action.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {action.description}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center gap-4 text-sm">
-                      {action.startDate && (
-                        <span>{new Date(action.startDate).toLocaleDateString()}</span>
-                      )}
-                      {action.endDate && (
-                        <span>- {new Date(action.endDate).toLocaleDateString()}</span>
-                      )}
-                      <span>{action.estimatedHours || 1}h</span>
+          <CardContent>
+            <div className="space-y-3">
+              {extractedActions.map((action, index) => (
+                <div key={index} className="neo-action-item border rounded-lg p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div>
+                        <h4 className="font-medium">{action.title}</h4>
+                        {action.description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {action.description}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        {action.startDate && (
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(action.startDate).toLocaleDateString()}
+                          </span>
+                        )}
+                        {action.endDate && (
+                          <span>→ {new Date(action.endDate).toLocaleDateString()}</span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {action.estimatedHours || 1}h
+                        </span>
+                        {action.priority && (
+                          <Badge className={`neo-priority-${action.priority}`}>
+                            P{action.priority}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     
                     <div className="flex items-center gap-2">
                       <Select onValueChange={(value) => handleAddActionToRepository(action, value)}>
                         <SelectTrigger className="w-48">
-                          <SelectValue placeholder={t('worklines.name')} />
+                          <SelectValue placeholder={t('worklines.selectWorkline')} />
                         </SelectTrigger>
                         <SelectContent>
                           {worklines.map((workline) => (
@@ -591,23 +602,54 @@ export function MeetingsPage() {
                           ))}
                         </SelectContent>
                       </Select>
+                      
+                      <Button
+                        size="sm"
+                        className="neo-button-primary gap-2"
+                        onClick={() => {
+                          // If there's a default workline, add to it
+                          if (worklines.length > 0) {
+                            handleAddActionToRepository(action, worklines[0].id);
+                          }
+                        }}
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add
+                      </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setExtractedActions([])}
-            >
-              {t('common.close')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setExtractedActions([]);
+                  setSelectedMeeting(null);
+                }}
+              >
+                {t('common.close')}
+              </Button>
+              <Button
+                className="neo-button-primary gap-2"
+                onClick={() => {
+                  // Add all actions to first workline
+                  if (worklines.length > 0) {
+                    extractedActions.forEach(action => {
+                      handleAddActionToRepository(action, worklines[0].id);
+                    });
+                  }
+                }}
+              >
+                <Plus className="w-4 h-4" />
+                Add All Actions
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
